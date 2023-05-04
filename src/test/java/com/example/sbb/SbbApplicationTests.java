@@ -1,11 +1,14 @@
 package com.example.sbb;
 
+import com.example.sbb.answer.Answer;
+import com.example.sbb.answer.AnswerRepository;
+import com.example.sbb.question.Question;
+import com.example.sbb.question.QuestionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

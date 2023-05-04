@@ -7,35 +7,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class MainController {
-    @GetMapping("/plus")
+    @GetMapping("/sbb")
     @ResponseBody
-    public int showPlus(int a, int b) {
-        return a + b;
-    }
-    @GetMapping("/minus")
-    @ResponseBody
-    public int showMinus(int a, int b) {
-        return a - b;
-    }
-    int a = 0;
-    @GetMapping("/increase")
-    @ResponseBody
-    public int showIncrease() {
-        return a++;
+    public String index() {
+        return "안녕하세요 sbb에 오신것을 환영합니다.";
     }
 
-    @GetMapping("/mbti/{name}")
-    @ResponseBody
-    public String showMbti(@PathVariable String name) {
-        return switch (name) {
-            case "scy" -> {
-                char i = 'I';
-                yield i + "SFP";
-            }
-            case "kde" -> "INFP";
-            case "sjh", "his" -> "ESTJ";
-            default -> "none";
-        };
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/question/list";
     }
-
 }
