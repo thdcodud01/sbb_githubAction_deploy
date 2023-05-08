@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 import com.example.sbb.DataNotFoundException;
+import java.time.LocalDateTime;
+
 @RequiredArgsConstructor // questionRepository 가 생성될 때 생성자 함수가 초기화 되게 하는 annotation
 @Service
 public class QuestionService { // 데이터 처리를 위해 작성하는 클래스
@@ -20,5 +22,12 @@ public class QuestionService { // 데이터 처리를 위해 작성하는 클래
             return question.get();
         } else {
             throw new DataNotFoundException("question not found");        }
+    }
+    public void create(String subject, String content) {
+        Question q = new Question();
+        q.setSubject(subject);
+        q.setContent(content);
+        q.setCreateDate(LocalDateTime.now());
+        this.questionRepository.save(q);
     }
 }
