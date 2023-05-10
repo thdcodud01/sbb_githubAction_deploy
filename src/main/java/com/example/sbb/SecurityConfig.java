@@ -24,7 +24,17 @@ public class SecurityConfig {
                 .headers()
                 .addHeaderWriter(new XFrameOptionsHeaderWriter(
                         XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
+                .and()
+                .formLogin()
+                .loginPage("/user/login")
+                .defaultSuccessUrl("/")
+                .and()
+                .logout()
+                .logoutRequestMatcher(new AntPathRequestMatcher("/user/logout"))
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
         ;
+
         return http.build();
     }
     @Bean
