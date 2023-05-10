@@ -1,12 +1,16 @@
 package com.example.sbb.question;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 import com.example.sbb.DataNotFoundException;
 import java.time.LocalDateTime;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 @RequiredArgsConstructor // questionRepository 가 생성될 때 생성자 함수가 초기화 되게 하는 annotation
 @Service
 public class QuestionService { // 데이터 처리를 위해 작성하는 클래스
@@ -29,5 +33,11 @@ public class QuestionService { // 데이터 처리를 위해 작성하는 클래
         q.setContent(content);
         q.setCreateDate(LocalDateTime.now());
         this.questionRepository.save(q);
+    }
+    public Page<Question> getList(int page) {
+        List<Sort.Order> sorts = new ArrayList<>();
+        sorts.add(Sort.Order.desc("createDate"));
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(sorts));
+        return this.questionRepository.findAll(pageable);
     }
 }
