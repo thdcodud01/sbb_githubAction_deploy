@@ -9,37 +9,41 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-@RequestMapping("/question")
-@RequiredArgsConstructor // final이 붙은 속성을 포함하는 생성자를 자동으로 생성하는 역할
+@RequestMapping("/question") // 메서드 단위에서는 /question 를 생략한 그 뒷 부분만을 적으면 됨 & URL 매핑은 항상 /question 으로 시작해야 하는 규칙이 생긴 것
+@RequiredArgsConstructor // final이 붙은 속성을 포함하는 생성자를 자동으로 생성하는 역할 -> 스프링 의존성 주입 규칙에 의해 questionRepository 객체가 자동으로 주입
 @Controller
 public class QuestionController {
     private final QuestionService questionService;
 
     @GetMapping("/list")
-    public String list(Model model, @RequestParam(value="page", defaultValue="0") int page) {
+    // 원래 ResponseBody 가 있었는데 question_list.html 파일이 템플릿 파일이여서 @ResponseBody 애너테이션은 필요없으므로 삭제
+    public String list(Model model, @RequestParam(value="page", defaultValue="0") int page) { // Model 객체는 자바 클래스와 템플릿 간의 연결고리 역할 (MVC pattern) & View와 Controller 사이에서 데이터를 주고받는 데 사용되는 객체로, Controller에서 생성한 데이터를 View에 전달하는 역할
         Page<Question> paging = this.questionService.getList(page);
         model.addAttribute("paging", paging);
-        return "question_list";
+        return "question_list"; // list 메서드에서 question_list.html 템플릿 파일의 이름인 "question_list"를 return
     }
     @GetMapping(value = "/detail/{id}") // {}를 통해 id 값은 변할 수 있는 값임을 명시
-    public String detail(Model model, @PathVariable("id") Integer id, AnswerForm answerForm) {
-        Question question = this.questionService.getQuestion(id);
+    public String detail(Model model, @PathVariable("id") Integer id, AnswerForm answerForm) { // 변하는 id 값을 얻을 때에는 @PathVariable 사용
+        Question question = this.questionService.getQuestion(id); // QuestionController에서 QuestionService의 getQuestion 메서드를 호출하여 Question 객체를 템플릿에 전달할 수 있도록
         model.addAttribute("question", question);
         return "question_detail";
     }
     @GetMapping("/create")
-    public String questionCreate(QuestionForm questionForm) {
+    public String questionCreate(QuestionForm questionForm) { //  questionCreate 메서드는 question_form 템플릿을 렌더링하여 출력
         return "question_form";
     }
-    @PostMapping("/create")
-    public String questionCreate(@Valid QuestionForm questionForm, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
+    @PostMapping("/create") // "질문 등록하기" 버튼을 통한 /question/create 요청
+    public String questionCreate(@Valid QuestionForm questionForm, BindingResult bindingResult) { // subject, content 항목을 지닌 폼이 전송되면 QuestionForm의 subject, content 속성이 자동으로 바인딩
+        if (bindingResult.hasErrors()) { // 오류가 있는 경우에는 다시 폼을 작성하는 화면을 렌더링하게
             return "question_form";
         }
-        this.questionService.create(questionForm.getSubject(), questionForm.getContent());
-        return "redirect:/question/list";
+        this.questionService.create(questionForm.getSubject(), questionForm.getContent()); // QuestionService로 질문 데이터를 저장하는 코드
+        return "redirect:/question/list"; // 질문 저장후 질문목록으로 이동
     }
 }

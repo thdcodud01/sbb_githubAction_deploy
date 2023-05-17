@@ -11,10 +11,9 @@ import java.time.LocalDateTime;
 public class AnswerService {
 
     private final AnswerRepository answerRepository;
-
     public void create(Question question, String content) { // 답변 생성위해 create 메서드 추가
         Answer answer = new Answer();
-        answer.setContent(content); // setter 로 데이터 업데이트
+        answer.setContent(content);
         answer.setCreateDate(LocalDateTime.now());
         answer.setQuestion(question);
         this.answerRepository.save(answer);

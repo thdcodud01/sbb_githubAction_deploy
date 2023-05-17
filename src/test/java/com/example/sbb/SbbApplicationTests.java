@@ -22,8 +22,9 @@ class SbbApplicationTests {
 	@Autowired
 	private QuestionService questionService;
 	@Autowired
-	private AnswerRepository answerRepository;
+	private AnswerRepository answerRepository; // 답변 데이터 처리를 위해서는 답변 리포지터리가 필요하므로 AnswerRepository 객체를 @Autowired로 주입
 
+	//@Transactional // 끝날 때 까지 db session 이 종료되지 않게 해주는 annotation (메서드가 종료될 때까지 DB 세션이 유지)
 	@Test
 	void testJpa() {
 		for (int i = 1; i <= 300; i++) {
