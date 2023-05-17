@@ -2,8 +2,10 @@ package com.example.sbb.question;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import com.example.sbb.answer.Answer;
+import com.example.sbb.user.SiteUser;
 import jakarta.persistence.*;
 
 import lombok.Getter;
@@ -27,4 +29,12 @@ public class Question {
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.REMOVE) // Question 엔티티와 Answer 엔티티 간의 일대다 관계를 설정 & 질문을 삭제하면 그에 달린 답변들도 모두 함께 삭제하기 위해 cascade 사용
     private List<Answer> answerList; // question 하나에 answer 은 여러개이므로 question 엔티티에 추가할 답변의 속성은 list 형태로 구성
+
+    @ManyToOne
+    private SiteUser author;
+
+    private LocalDateTime modifyDate;
+
+    @ManyToMany
+    Set<SiteUser> voter;
 }

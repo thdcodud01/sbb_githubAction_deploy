@@ -2,6 +2,8 @@ package com.example.sbb.question;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.example.sbb.user.SiteUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.*;
@@ -29,11 +31,12 @@ public class QuestionService { // 데이터 처리를 위해 작성하는 클래
         } else {
             throw new DataNotFoundException("question not found");        }
     }
-    public void create(String subject, String content) { // 제목과 내용을 입력으로 하여 질문 데이터를 저장하는 create 메서드 생성
+    public void create(String subject, String content, SiteUser user) { // 제목과 내용을 입력으로 하여 질문 데이터를 저장하는 create 메서드 생성
         Question q = new Question();
         q.setSubject(subject);
         q.setContent(content);
         q.setCreateDate(LocalDateTime.now());
+        q.setAuthor(user);
         this.questionRepository.save(q);
     }
     public Page<Question> getList(int page) {
@@ -41,5 +44,21 @@ public class QuestionService { // 데이터 처리를 위해 작성하는 클래
         sorts.add(Sort.Order.desc("createDate")); // 작성일시 역순 조회
         Pageable pageable = PageRequest.of(page, 10, Sort.by(sorts));// page는 조회할 페이지의 번호이고 10은 한 페이지에 보여줄 게시물의 갯수를 의미 & 게시물을 역순으로 조회하기 위해서는 위와 같이 PageRequest.of 메서드의 세번째 파라미터로 Sort 객체를 전달해야 함
         return this.questionRepository.findAll(pageable);
+    }
+
+    public void modify(Question question, String subject, String content) {
+        question.setSubject(subject);
+        question.setContent(content);
+        question.setModifyDate(LocalDateTime.now());
+        this.questionRepository.save(question);
+    }
+
+    public void delete(Question question) {
+        this.questionRepository.delete(question);
+    }
+
+    public void vote(Question question, SiteUser siteUser) {
+        question.getVoter().add(siteUser);
+        this.questionRepository.save(question);
     }
 }

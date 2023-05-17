@@ -1,9 +1,13 @@
 package com.example.sbb.question;
 
 import com.example.sbb.answer.AnswerForm;
+import com.example.sbb.user.SiteUser;
+import com.example.sbb.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -12,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.data.domain.Page;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.security.Principal;
 import java.util.List;
 
 @RequestMapping("/question") // 메서드 단위에서는 /question 를 생략한 그 뒷 부분만을 적으면 됨 & URL 매핑은 항상 /question 으로 시작해야 하는 규칙이 생긴 것
@@ -20,6 +26,7 @@ import java.util.List;
 @Controller
 public class QuestionController {
     private final QuestionService questionService;
+    private final UserService userService;
 
     @GetMapping("/list")
     // 원래 ResponseBody 가 있었는데 question_list.html 파일이 템플릿 파일이여서 @ResponseBody 애너테이션은 필요없으므로 삭제
@@ -34,16 +41,51 @@ public class QuestionController {
         model.addAttribute("question", question);
         return "question_detail";
     }
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/create")
     public String questionCreate(QuestionForm questionForm) { //  questionCreate 메서드는 question_form 템플릿을 렌더링하여 출력
         return "question_form";
     }
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/create") // "질문 등록하기" 버튼을 통한 /question/create 요청
-    public String questionCreate(@Valid QuestionForm questionForm, BindingResult bindingResult) { // subject, content 항목을 지닌 폼이 전송되면 QuestionForm의 subject, content 속성이 자동으로 바인딩
+    public String questionCreate(@Valid QuestionForm questionForm, BindingResult bindingResult, Principal principal) { // subject, content 항목을 지닌 폼이 전송되면 QuestionForm의 subject, content 속성이 자동으로 바인딩
         if (bindingResult.hasErrors()) { // 오류가 있는 경우에는 다시 폼을 작성하는 화면을 렌더링하게
             return "question_form";
         }
-        this.questionService.create(questionForm.getSubject(), questionForm.getContent()); // QuestionService로 질문 데이터를 저장하는 코드
+        SiteUser siteUser = this.userService.getUser(principal.getName());
+        this.questionService.create(questionForm.getSubject(), questionForm.getContent(), siteUser); // QuestionService로 질문 데이터를 저장하는 코드
         return "redirect:/question/list"; // 질문 저장후 질문목록으로 이동
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/modify/{id}")
+    public String questionModify(QuestionForm questionForm, @PathVariable("id") Integer id, Principal principal) {
+        Question question = this.questionService.getQuestion(id);
+        if(!question.getAuthor().getUsername().equals(principal.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
+        }
+        questionForm.setSubject(question.getSubject());
+        questionForm.setContent(question.getContent());
+        return "question_form";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/delete/{id}")
+    public String questionDelete(Principal principal, @PathVariable("id") Integer id) {
+        Question question = this.questionService.getQuestion(id);
+        if (!question.getAuthor().getUsername().equals(principal.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제권한이 없습니다.");
+        }
+        this.questionService.delete(question);
+        return "redirect:/";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/vote/{id}")
+    public String questionVote(Principal principal, @PathVariable("id") Integer id) {
+        Question question = this.questionService.getQuestion(id);
+        SiteUser siteUser = this.userService.getUser(principal.getName());
+        this.questionService.vote(question, siteUser);
+        return String.format("redirect:/question/detail/%s", id);
     }
 }
