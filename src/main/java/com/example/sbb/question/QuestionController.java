@@ -5,6 +5,7 @@ import com.example.sbb.user.SiteUser;
 import com.example.sbb.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,9 +31,10 @@ public class QuestionController {
 
     @GetMapping("/list")
     // 원래 ResponseBody 가 있었는데 question_list.html 파일이 템플릿 파일이여서 @ResponseBody 애너테이션은 필요없으므로 삭제
-    public String list(Model model, @RequestParam(value="page", defaultValue="0") int page) { // Model 객체는 자바 클래스와 템플릿 간의 연결고리 역할 (MVC pattern) & View와 Controller 사이에서 데이터를 주고받는 데 사용되는 객체로, Controller에서 생성한 데이터를 View에 전달하는 역할
-        Page<Question> paging = this.questionService.getList(page);
+    public String list(Model model, @RequestParam(value="page", defaultValue="0") int page, @RequestParam(value = "kw", defaultValue = "") String kw) { // Model 객체는 자바 클래스와 템플릿 간의 연결고리 역할 (MVC pattern) & View와 Controller 사이에서 데이터를 주고받는 데 사용되는 객체로, Controller에서 생성한 데이터를 View에 전달하는 역할
+        Page<Question> paging = this.questionService.getList(page, kw);
         model.addAttribute("paging", paging);
+        model.addAttribute("kw", kw); // 화면에서 입력한 검색어를 화면에 유지하기 위해 kw 로 값지정
         return "question_list"; // list 메서드에서 question_list.html 템플릿 파일의 이름인 "question_list"를 return
     }
     @GetMapping(value = "/detail/{id}") // {}를 통해 id 값은 변할 수 있는 값임을 명시
@@ -67,6 +69,21 @@ public class QuestionController {
         questionForm.setSubject(question.getSubject());
         questionForm.setContent(question.getContent());
         return "question_form";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/modify/{id}")
+    public String questionModify(@Valid QuestionForm questionForm, BindingResult bindingResult,
+                                 Principal principal, @PathVariable("id") Integer id) {
+        if (bindingResult.hasErrors()) {
+            return "question_form";
+        }
+        Question question = this.questionService.getQuestion(id);
+        if (!question.getAuthor().getUsername().equals(principal.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
+        }
+        this.questionService.modify(question, questionForm.getSubject(), questionForm.getContent());
+        return String.format("redirect:/question/detail/%s", id);
     }
 
     @PreAuthorize("isAuthenticated()")
