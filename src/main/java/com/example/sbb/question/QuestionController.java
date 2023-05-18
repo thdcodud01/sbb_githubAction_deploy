@@ -4,6 +4,7 @@ import com.example.sbb.answer.AnswerForm;
 import com.example.sbb.user.SiteUser;
 import com.example.sbb.user.UserService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 import java.util.List;
 
+@Slf4j
 @RequestMapping("/question") // 메서드 단위에서는 /question 를 생략한 그 뒷 부분만을 적으면 됨 & URL 매핑은 항상 /question 으로 시작해야 하는 규칙이 생긴 것
 @RequiredArgsConstructor // final이 붙은 속성을 포함하는 생성자를 자동으로 생성하는 역할 -> 스프링 의존성 주입 규칙에 의해 questionRepository 객체가 자동으로 주입
 @Controller
@@ -32,6 +34,7 @@ public class QuestionController {
     @GetMapping("/list")
     // 원래 ResponseBody 가 있었는데 question_list.html 파일이 템플릿 파일이여서 @ResponseBody 애너테이션은 필요없으므로 삭제
     public String list(Model model, @RequestParam(value="page", defaultValue="0") int page, @RequestParam(value = "kw", defaultValue = "") String kw) { // Model 객체는 자바 클래스와 템플릿 간의 연결고리 역할 (MVC pattern) & View와 Controller 사이에서 데이터를 주고받는 데 사용되는 객체로, Controller에서 생성한 데이터를 View에 전달하는 역할
+        log.info("page:{}, kw:{}", page, kw);
         Page<Question> paging = this.questionService.getList(page, kw);
         model.addAttribute("paging", paging);
         model.addAttribute("kw", kw); // 화면에서 입력한 검색어를 화면에 유지하기 위해 kw 로 값지정
