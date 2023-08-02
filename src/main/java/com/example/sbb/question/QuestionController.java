@@ -33,7 +33,7 @@ public class QuestionController {
 
     @GetMapping("/list")
     // 원래 ResponseBody 가 있었는데 question_list.html 파일이 템플릿 파일이여서 @ResponseBody 애너테이션은 필요없으므로 삭제
-    public String list(Model model, @RequestParam(value="page", defaultValue="0") int page, @RequestParam(value = "kw", defaultValue = "") String kw) { // Model 객체는 자바 클래스와 템플릿 간의 연결고리 역할 (MVC pattern) & View와 Controller 사이에서 데이터를 주고받는 데 사용되는 객체로, Controller에서 생성한 데이터를 View에 전달하는 역할
+    public String list(Model model, @RequestParam(value="page", defaultValue="1") int page, @RequestParam(value = "kw", defaultValue = "") String kw) { // Model 객체는 자바 클래스와 템플릿 간의 연결고리 역할 (MVC pattern) & View와 Controller 사이에서 데이터를 주고받는 데 사용되는 객체로, Controller에서 생성한 데이터를 View에 전달하는 역할
         log.info("page:{}, kw:{}", page, kw);
         Page<Question> paging = this.questionService.getList(page, kw);
         model.addAttribute("paging", paging);
